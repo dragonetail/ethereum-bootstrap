@@ -1,6 +1,6 @@
 # Ethereum Bootstrap
 
-通过本文所述方法和项目中的脚本，我们可以快速的搭建好自己的私链进行开发测试。
+通过本文所述方法和项目中的脚本，可以快速的搭建好自己的私链进行开发测试并进行多节点验证。
 
 仓库中包含的工具有：
 
@@ -25,12 +25,12 @@
    输出的结果类似如下, $(DIR))代表你的下载路径：
    ```
     INFO [09-25|11:07:26] Allocated cache and file handles         database=$(DIR)/ethereum-bootstrap/data/geth/chaindata cache=16 handles=16
-	INFO [09-25|11:07:26] Successfully wrote genesis state         database=chaindata                                      hash=194258…f0efa3
-	INFO [09-25|11:07:26] Allocated cache and file handles         database=$(DIR)/ethereum-bootstrap/data/geth/lightchaindata cache=16 handles=16
-	INFO [09-25|11:07:26] Successfully wrote genesis state         database=lightchaindata                                      hash=194258…f0efa3
+   INFO [09-25|11:07:26] Successfully wrote genesis state         database=chaindata                                      hash=194258…f0efa3
+   INFO [09-25|11:07:26] Allocated cache and file handles         database=$(DIR)/ethereum-bootstrap/data/geth/lightchaindata cache=16 handles=16
+   INFO [09-25|11:07:26] Successfully wrote genesis state         database=lightchaindata                                      hash=194258…f0efa3
    ```
 4. 为解决之后操作账户锁定问题，修改本目录下bin/private_blockchain.sh文件，在$geth后添加--unlock 0 --password value.
-   其中0表示解锁第0个账户，value为包含你第2步设置的密码的文件的地址路径，需要你建立。这样下面就不需要再解锁账户的操作。
+     其中0表示解锁第0个账户，value为包含你第2步设置的密码的文件的地址路径，需要你建立。这样下面就不需要再解锁账户的操作。
 5. 启动私有链节点: `./bin/private_blockchain.sh`. 启动成功后可以看到类似如下输出:
   ![private-started.png](screenshots/private-started.png)
 6. 此时以太坊交互式控制台已经启动，我们可以开始测试和开发了。
