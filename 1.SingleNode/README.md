@@ -43,7 +43,7 @@
    sudo apt-get install software-properties-common
    sudo add-apt-repository -y ppa:ethereum/ethereum
    sudo apt-get update
-   sudo apt-get install ethereum
+   sudo apt-get install ethereum solc
    ```
 
 2. 安装git工具`sudo apt-get install git`，将本仓库通过`git clone`命令下载到本地。
@@ -177,5 +177,8 @@ true
 > personal.unlockAccount(web3.eth.accounts[0])
 ```
 
+## 其他
 
+私有链的所有数据都会放在仓库根目录下的`data`目录中，删除这个目录可以清除所有数据，重新启动新环境。
+[solidity_compiler_helper](https://github.com/rakeshbs/solidity_compiler_helper)，可以使用这个小工具来部署，更方便。
 
