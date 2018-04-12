@@ -5,7 +5,8 @@ echo "***** Using geth at: $geth"
 
 echo "***** Import all pre-funded private keys"
 
-read -p "***** Enter password for the new wallet: " password
+#read -p "***** Enter password for the new wallet: " password
+password="123456"
 
 for key in `find ./private_keys -name '*.key'`
 do
