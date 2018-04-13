@@ -19,7 +19,7 @@
 
    更改Ubuntu的apt源为阿里的
    参考： https://www.cnblogs.com/lyon2014/p/4715379.html
-   更改/etc/apt.d/sources.list
+   更改/etc/apt/sources.list
    root@geth-node01:~# cat /etc/apt/sources.list
    deb http://mirrors.aliyun.com/ubuntu/ trusty main multiverse restricted universe
    deb http://mirrors.aliyun.com/ubuntu/ trusty-backports main multiverse restricted universe
