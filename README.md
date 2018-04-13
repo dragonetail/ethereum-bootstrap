@@ -4,5 +4,9 @@
 
 [2.TokenContract](./2.TokenContract/)：智能合约（Token代币）的部署和验证
 
+[3.SecondNode](./3.SecondNode/)：第二个节点，开始部署集群
+
+
+
 
 
