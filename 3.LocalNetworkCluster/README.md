@@ -4,7 +4,7 @@
 
 仓库中包含的工具有：
 
-* 同单节点的初始化genesis.json配置文件，为对应的五个测试账户提供初始资金（以太币），方便开发测试。
+* 同单节点的初始化`genesis.json`配置文件，为对应的五个测试账户提供初始资金（以太币），方便开发测试。
 
 ****
 
@@ -50,137 +50,397 @@
 
    **说明：在第二个节点开始尝试使用普通用户启动geth服务。**
 
-## 验证测试（一）
+## 验证测试（一）： 正常启动多个节点，组成集群
 
-1. 进入本仓库目录: `cd ethereum-bootstrap/3.LocalNetworkCluster`
+1. 验证思路：
 
-2. 初始化blockchain: `./init_private_blockchain.sh`
+   - 使用`genesis.json`初始化bootnode，然后创建bootnode的节点Key，并启动；
+   - 分别使用`genesis.json`初始化各个节点，然后使用bootnode的连接串启动各个节点；
+   - 各个节点可以在同一个机器（需要指定不同的网络），也可以在不同的机器。
+   - 各个节点操作时使用私有网络ID，这里测试使用【20180412】。
+   - 所有涉及用户Key的密码，统一使用【123456】简化操作。
+
+2. 进入本仓库目录: `cd ethereum-bootstrap/3.LocalNetworkCluster`
+
+3. 初始化并启动bootnode:
+
+   ```shell
+   # 创建目录并进入到bootnode目录
+   ubuntu@geth-node01:~/ethereum-bootstrap/3.LocalNetworkCluster$ mkdir bootnode
+   ubuntu@geth-node01:~/ethereum-bootstrap/3.LocalNetworkCluster$ cd bootnode/
+   # 生成bootnode的节点Key
+   ubuntu@geth-node01:~/ethereum-bootstrap/3.LocalNetworkCluster/bootnode$ bootnode --genkey=boot.key
+   ubuntu@geth-node01:~/ethereum-bootstrap/3.LocalNetworkCluster/bootnode$ ls -ltr
+   total 8
+   -rw------- 1 ubuntu ubuntu   64 Apr 13 10:09 boot.key
+   # 上面的boot.key就是生成的bootnode的节点Key
+
+   # 下面使用genesis.json初始化bootnode的chaincode信息
+   ubuntu@geth-node01:~/ethereum-bootstrap/3.LocalNetworkCluster/bootnode$ geth --datadir data --networkid 20180412  init ../genesis.json 
+   INFO [04-13|10:09:12] Maximum peer count                       ETH=25 LES=0 total=25
+   INFO [04-13|10:09:12] Allocated cache and file handles         database=/home/ubuntu/ethereum-bootstrap/3.LocalNetworkCluster/bootnode/data/geth/chaindata cache=16 handles=16
+   INFO [04-13|10:09:12] Writing custom genesis block 
+   INFO [04-13|10:09:12] Persisted trie from memory database      nodes=7 size=1.31kB time=73.599µs gcnodes=0 gcsize=0.00B gctime=0s livenodes=1 livesize=0.00B
+   INFO [04-13|10:09:12] Successfully wrote genesis state         database=chaindata                                                                          hash=194258…f0efa3
+   INFO [04-13|10:09:12] Allocated cache and file handles         database=/home/ubuntu/ethereum-bootstrap/3.LocalNetworkCluster/bootnode/data/geth/lightchaindata cache=16 handles=16
+   INFO [04-13|10:09:12] Writing custom genesis block 
+   INFO [04-13|10:09:12] Persisted trie from memory database      nodes=7 size=1.31kB time=478.772µs gcnodes=0 gcsize=0.00B gctime=0s livenodes=1 livesize=0.00B
+   INFO [04-13|10:09:12] Successfully wrote genesis state         database=lightchaindata                                                                          hash=194258…f0efa3
+   ubuntu@geth-node01:~/ethereum-bootstrap/3.LocalNetworkCluster/bootnode$ ls -ltr
+   total 8
+   -rw------- 1 ubuntu ubuntu   64 Apr 13 10:09 boot.key
+   drwx------ 4 ubuntu ubuntu 4096 Apr 13 10:09 data
+   # 生成了data目录，存储了chaincode的数据
+
+   # 启动bootnode，获取bootnode的接入地址串
+   ubuntu@geth-node01:~/ethereum-bootstrap/3.LocalNetworkCluster/bootnode$ bootnode --nodekey=boot.key
+   INFO [04-13|10:09:18] UDP listener up                          self=enode://322de50135b1542f17585e73aea7ffe9585e9d988cecdff40732842113e5cdb9ae249ca3b12fe7658101632bfc5e19493acf941d9a52a2a9f16627318f01e76d@[::]:30301
+   # 上面接入地址串中[::]需要根据需要替换成本地的IP地址，供其他节点接入时候使用，例如：
+   # enode://322de50135b1542f17585e73aea7ffe9585e9d988cecdff40732842113e5cdb9ae249ca3b12fe7658101632bfc5e19493acf941d9a52a2a9f16627318f01e76d@10.20.1.13:30301
+   # 这个地址跟bootnode的Key有关，Key不变，地址不变
+   # 注意： 重复测试的时候，如果要重置bootnode，需要删除boot.key和data目录。
    ```
-   root@geth-node01:~/ethereum-bootstrap/1.SingleNode# ./init_private_blockchain.sh 
-   INFO [04-12|15:47:41] Maximum peer count                       ETH=25 LES=0 total=25
-   INFO [04-12|15:47:41] Allocated cache and file handles         database=/root/ethereum-bootstrap/1.SingleNode/data/geth/chaindata cache=16 handles=16
-   INFO [04-12|15:47:41] Writing custom genesis block 
-   INFO [04-12|15:47:41] Persisted trie from memory database      nodes=7 size=1.31kB time=70.539µs gcnodes=0 gcsize=0.00B gctime=0s livenodes=1 livesize=0.00B
-   INFO [04-12|15:47:41] Successfully wrote genesis state         database=chaindata                                                 hash=194258…f0efa3
-   INFO [04-12|15:47:41] Allocated cache and file handles         database=/root/ethereum-bootstrap/1.SingleNode/data/geth/lightchaindata cache=16 handles=16
-   INFO [04-12|15:47:41] Writing custom genesis block 
-   INFO [04-12|15:47:41] Persisted trie from memory database      nodes=7 size=1.31kB time=498.815µs gcnodes=0 gcsize=0.00B gctime=0s livenodes=1 livesize=0.00B
-   INFO [04-12|15:47:41] Successfully wrote genesis state         database=lightchaindata                                                 hash=194258…f0efa3
+
+4. 本机启动第一个节点：
+
+   ```shell
+   # 启动节点主要命令：
+   # 1、初始化
+   geth --datadir data --networkid 20180412 init ../genesis.json
+   # 2、启动节点
+   geth --datadir ./data --networkid 20180412 --bootnodes=enode://322de50135b1542f17585e73aea7ffe9585e9d988cecdff40732842113e5cdb9ae249ca3b12fe7658101632bfc5e19493acf941d9a52a2a9f16627318f01e76d@10.20.1.13:30301 --port 30303 console
    ```
 
-3. 启动私有链节点: `./start_private_blockchain.sh`. 启动成功后可以看到类似如下输出:
+   详细内容：
 
-4. enode://e6f8732c332d66fedd1bd74cc6fa6b528ea24db76f903f1d4bdf7b2aaaa45ac2c17a056225075bbebb48052c7097dd331de6983aa58b051f64c5622f4b3daed1@10.20.1.13:30303?discport=0
+   ```shell
+   # 打开一个新的终端
+   ubuntu@geth-node01:~/ethereum-bootstrap/3.LocalNetworkCluster$ mkdir node1
+   ubuntu@geth-node01:~/ethereum-bootstrap/3.LocalNetworkCluster$ cd node1/
+   ubuntu@geth-node01:~/ethereum-bootstrap/3.LocalNetworkCluster/node1$ ls
+   ubuntu@geth-node01:~/ethereum-bootstrap/3.LocalNetworkCluster/node1$ ls -ltr
+   total 0
 
-5. ​
+   # 下面使用genesis.json初始化node1的chaincode信息
+   ubuntu@geth-node01:~/ethereum-bootstrap/3.LocalNetworkCluster/node1$ geth --datadir data --networkid 20180412 init ../genesis.json 
+   INFO [04-13|10:29:22] Maximum peer count                       ETH=25 LES=0 total=25
+   INFO [04-13|10:29:22] Allocated cache and file handles         database=/home/ubuntu/ethereum-bootstrap/3.LocalNetworkCluster/node1/data/geth/chaindata cache=16 handles=16
+   INFO [04-13|10:29:22] Writing custom genesis block 
+   INFO [04-13|10:29:22] Persisted trie from memory database      nodes=7 size=1.31kB time=98.552µs gcnodes=0 gcsize=0.00B gctime=0s livenodes=1 livesize=0.00B
+   INFO [04-13|10:29:22] Successfully wrote genesis state         database=chaindata                                                                       hash=194258…f0efa3
+   INFO [04-13|10:29:22] Allocated cache and file handles         database=/home/ubuntu/ethereum-bootstrap/3.LocalNetworkCluster/node1/data/geth/lightchaindata cache=16 handles=16
+   INFO [04-13|10:29:22] Writing custom genesis block 
+   INFO [04-13|10:29:22] Persisted trie from memory database      nodes=7 size=1.31kB time=451.459µs gcnodes=0 gcsize=0.00B gctime=0s livenodes=1 livesize=0.00B
+   INFO [04-13|10:29:22] Successfully wrote genesis state         database=lightchaindata                                                                       hash=194258…f0efa3 
+   # 注意： 上面初始化生成的[194258…f0efa3]与bootnode是一致的，因此只要一个节点初始化一次，其他节点可以直接使用这个数据作为起始数据包而不用初始化操作
+   ubuntu@geth-node01:~/ethereum-bootstrap/3.LocalNetworkCluster/node1$ ls -ltr
+   total 4
+   drwx------ 4 ubuntu ubuntu 4096 Apr 13 10:35 data
 
-   ```
-   root@geth-node01:~/ethereum-bootstrap/1.SingleNode# ./start_private_blockchain.sh 
-   INFO [04-12|15:47:45] Maximum peer count                       ETH=25 LES=0 total=25
-   INFO [04-12|15:47:45] Starting peer-to-peer node               instance=Geth/v1.8.3-stable-329ac18e/linux-amd64/go1.10
-   INFO [04-12|15:47:45] Allocated cache and file handles         database=/root/ethereum-bootstrap/1.SingleNode/data/geth/chaindata cache=768 handles=512
-   WARN [04-12|15:47:45] Upgrading database to use lookup entries 
-   INFO [04-12|15:47:45] Initialised chain configuration          config="{ChainID: 15 Homestead: 0 DAO: <nil> DAOSupport: false EIP150: <nil> EIP155: 0 EIP158: 0 Byzantium: <nil> Constantinople: <nil> Engine: unknown}"
-   INFO [04-12|15:47:45] Disk storage enabled for ethash caches   dir=/root/ethereum-bootstrap/1.SingleNode/data/geth/ethash count=3
-   INFO [04-12|15:47:45] Disk storage enabled for ethash DAGs     dir=/root/.ethash                                          count=2
-   INFO [04-12|15:47:45] Initialising Ethereum protocol           versions="[63 62]" network=20180412
-   INFO [04-12|15:47:45] Database deduplication successful        deduped=0
-   INFO [04-12|15:47:45] Loaded most recent local header          number=0 hash=194258…f0efa3 td=131072
-   INFO [04-12|15:47:45] Loaded most recent local full block      number=0 hash=194258…f0efa3 td=131072
-   INFO [04-12|15:47:45] Loaded most recent local fast block      number=0 hash=194258…f0efa3 td=131072
-   INFO [04-12|15:47:45] Regenerated local transaction journal    transactions=0 accounts=0
-   INFO [04-12|15:47:45] Starting P2P networking 
-   INFO [04-12|15:47:45] RLPx listener up                         self="enode://e6f8732c332d66fedd1bd74cc6fa6b528ea24db76f903f1d4bdf7b2aaaa45ac2c17a056225075bbebb48052c7097dd331de6983aa58b051f64c5622f4b3daed1@[::]:30303?discport=0"
-   INFO [04-12|15:47:45] IPC endpoint opened                      url=/root/ethereum-bootstrap/1.SingleNode/data/geth.ipc
-   INFO [04-12|15:47:45] HTTP endpoint opened                     url=http://127.0.0.1:8545                               cors=* vhosts=localhost
+   # 启动节点，参数主要为网络ID与bootnode的一致，bootnodes的内容指向bootnode节点的地址串，指导端口
+   ubuntu@geth-node01:~/ethereum-bootstrap/3.LocalNetworkCluster/node1$ geth --datadir ./data --networkid 20180412 --bootnodes=enode://322de50135b1542f17585e73aea7ffe9585e9d988cecdff40732842113e5cdb9ae249ca3b12fe7658101632bfc5e19493acf941d9a52a2a9f16627318f01e76d@10.20.1.13:30301 --port 30303 console
+   INFO [04-13|10:34:24] Maximum peer count                       ETH=25 LES=0 total=25
+   INFO [04-13|10:34:24] Starting peer-to-peer node               instance=Geth/v1.8.3-stable-329ac18e/linux-amd64/go1.10
+   INFO [04-13|10:34:24] Allocated cache and file handles         database=/home/ubuntu/ethereum-bootstrap/3.LocalNetworkCluster/node1/data/geth/chaindata cache=768 handles=512
+   WARN [04-13|10:34:24] Upgrading database to use lookup entries 
+   INFO [04-13|10:34:24] Initialised chain configuration          config="{ChainID: 15 Homestead: 0 DAO: <nil> DAOSupport: false EIP150: <nil> EIP155: 0 EIP158: 0 Byzantium: <nil> Constantinople: <nil> Engine: unknown}"
+   INFO [04-13|10:34:24] Disk storage enabled for ethash caches   dir=/home/ubuntu/ethereum-bootstrap/3.LocalNetworkCluster/node1/data/geth/ethash count=3
+   INFO [04-13|10:34:24] Disk storage enabled for ethash DAGs     dir=/home/ubuntu/.ethash                                                         count=2
+   INFO [04-13|10:34:24] Initialising Ethereum protocol           versions="[63 62]" network=20180412
+   INFO [04-13|10:34:24] Loaded most recent local header          number=0 hash=194258…f0efa3 td=131072
+   INFO [04-13|10:34:24] Loaded most recent local full block      number=0 hash=194258…f0efa3 td=131072
+   INFO [04-13|10:34:24] Loaded most recent local fast block      number=0 hash=194258…f0efa3 td=131072
+   INFO [04-13|10:34:24] Regenerated local transaction journal    transactions=0 accounts=0
+   INFO [04-13|10:34:24] Starting P2P networking 
+   INFO [04-13|10:34:24] Database deduplication successful        deduped=0
+   INFO [04-13|10:34:26] UDP listener up                          self=enode://8a3d7c1b505f4a1ad1034de06c3e118a9067730f2b771aaaa16d38c77b75ae795beca3b631708aa5f7675f3707476173cc435c231bd89eee02f846690091bc5e@[::]:30303
+   INFO [04-13|10:34:26] RLPx listener up                         self=enode://8a3d7c1b505f4a1ad1034de06c3e118a9067730f2b771aaaa16d38c77b75ae795beca3b631708aa5f7675f3707476173cc435c231bd89eee02f846690091bc5e@[::]:30303
+   INFO [04-13|10:34:26] IPC endpoint opened                      url=/home/ubuntu/ethereum-bootstrap/3.LocalNetworkCluster/node1/data/geth.ipc
    Welcome to the Geth JavaScript console!
 
    instance: Geth/v1.8.3-stable-329ac18e/linux-amd64/go1.10
-   INFO [04-12|15:47:46] Etherbase automatically configured       address=0xbD2d69E3e68e1ab3944a865B3E566CA5c48740da
-   coinbase: 0xbd2d69e3e68e1ab3944a865b3e566ca5c48740da
-   at block: 0 (Thu, 01 Jan 1970 00:00:00 UTC)
-    datadir: /root/ethereum-bootstrap/1.SingleNode/data
     modules: admin:1.0 debug:1.0 eth:1.0 miner:1.0 net:1.0 personal:1.0 rpc:1.0 txpool:1.0 web3:1.0
 
    > 
    ```
 
-6. 此时以太坊交互式控制台已经启动，我们可以开始测试和开发了。
+5. 本机启动第二个节点，节点目录更改为node2，节点启动端口更改为30323，启动输出略。
 
-注意：工具脚本假设你的geth安装在默认位置, 可以直接通过`geth`执行。如果`geth`命令安装在非标准的位置，可以设置`GETH`环境变量指定geth可执行文件的路径。
+6. 这个时候在第一个节点或第二个节点上执行：
 
-## 通过挖矿来为account发放ether
-查看账号余额：
-```
-> web3.eth.getBalance(web3.eth.accounts[0])
-4e+30
-```
-可以通过挖矿的方式给第一个账号发行ether：
+   ```
+   > net.peerCount
+   1
+   > net.listening
+   true
+   > admin.peers
+   [{
+       caps: ["eth/63"],
+       id: "8a3d7c1b505f4a1ad1034de06c3e118a9067730f2b771aaaa16d38c77b75ae795beca3b631708aa5f7675f3707476173cc435c231bd89eee02f846690091bc5e",
+       name: "Geth/v1.8.3-stable-329ac18e/linux-amd64/go1.10",
+       network: {
+         inbound: false,
+         localAddress: "10.20.1.13:55921",
+         remoteAddress: "10.20.1.13:30303",
+         static: false,
+         trusted: false
+       },
+       protocols: {
+         eth: {
+           difficulty: 131072,
+           head: "0x19425866b7d3298a15ad79accf302ba9d21859174e7ae99ce552e05f13f0efa3",
+           version: 63
+         }
+       }
+   }]
+   ```
 
-第一次启动挖矿，会出现`Generating DAG in progress`当达到100%的时候，就会出现`Commit new mining work`说明挖矿成功。
+   可以看到相关节点的ID信息已经互相接入了。
 
-```
-> miner.start(1)
-INFO [04-12|15:56:25] Generating DAG in progress               epoch=1 percentage=6  elapsed=23.167s
-INFO [04-12|15:56:25] Successfully sealed new block            number=5 hash=17798f…35e7e5
-INFO [04-12|15:56:25] 🔨 mined potential block                  number=5 hash=17798f…35e7e5
-INFO [04-12|15:56:25] Commit new mining work                   number=6 txs=0 uncles=0 elapsed=187.16µs
-INFO [04-12|15:56:28] Generating DAG in progress               epoch=1 percentage=7  elapsed=26.578s
-INFO [04-12|15:56:31] Generating DAG in progress               epoch=1 percentage=8  elapsed=29.890s
-INFO [04-12|15:56:34] Successfully sealed new block            number=6 hash=161716…3096c7
-INFO [04-12|15:56:34] 🔗 block reached canonical chain          number=1 hash=e8c64a…dba8e9
-INFO [04-12|15:56:34] 🔨 mined potential block                  number=6 hash=161716…3096c7
-INFO [04-12|15:56:34] Commit new mining work                   number=7 txs=0 uncles=0 elapsed=148.93µs
-INFO [04-12|15:56:35] Generating DAG in progress               epoch=1 percentage=9  elapsed=33.215s
-INFO [04-12|15:56:39] Generating DAG in progress               epoch=1 percentage=10 elapsed=37.036s
-INFO [04-12|15:56:42] Generating DAG in progress               epoch=1 percentage=11 elapsed=40.755s
-INFO [04-12|15:56:46] Generating DAG in progress               epoch=1 percentage=12 elapsed=44.342s
-INFO [04-12|15:56:49] Generating DAG in progress               epoch=1 percentage=13 elapsed=47.660s
-INFO [04-12|15:56:53] Generating DAG in progress               epoch=1 percentage=14 elapsed=50.926s
-INFO [04-12|15:56:56] Generating DAG in progress               epoch=1 percentage=15 elapsed=54.258s
-INFO [04-12|15:56:56] Successfully sealed new block            number=7 hash=265246…80d943
-INFO [04-12|15:56:56] 🔗 block reached canonical chain          number=2 hash=47020c…93bf48
-INFO [04-12|15:56:56] 🔨 mined potential block                  number=7 hash=265246…80d943
-INFO [04-12|15:56:56] Commit new mining work                   number=8 txs=0 uncles=0 elapsed=162.679µs
-```
-需要调用miner.stop来停止挖矿：
-```
-> miner.stop()
-true
-> web3.eth.getBalance(web3.eth.accounts[0])
-4.00000000092e+30
-```
-其他的一些命令。
+7. 本地网络中其他服务器上启动第三个节点，节点目录为node3，节点启动端口更改为30333，启动输出略；启动成功后，在各个节点执行net.peerCount、net.listening、admin.peers查看节点的接入互联正常。
+   **曾经遇到过节点启动后没有加入成功，把bootnode重新启动后，然后重新启动node3，然后正常接入了。**
 
-创建一个新的账号：
+8. 账号基本操作：
 
-```
-> personal.newAccount("123456")
-"0xbf65120529316beed5858ed9b8add67a976f371e"
-```
+   ```
+   # 查看算力
+   > eth.hashrate
+   0
+   # 查看节点Block序号
+   > eth.blockNumber
+   0
+   # 创建账号
+   > personal.newAccount('123456')
+   "0x798e5632b04b344df4ae6a7d26a8138aa1ab16cf"
+   # 查询账号余额
+   > web3.eth.getBalance(web3.eth.accounts[0])
+   0
+   > web3.eth.getBalance("0x798e5632b04b344df4ae6a7d26a8138aa1ab16cf")
+   0
+   > web3.fromWei(eth.getBalance(eth.accounts[0]), "ether")
+   0
+   > eth.accounts
+   ["0x798e5632b04b344df4ae6a7d26a8138aa1ab16cf"]
+   ```
 
-列出所有的账号：
+9. 开启挖矿：
 
-```
-> eth.accounts
-["0xbd2d69e3e68e1ab3944a865b3e566ca5c48740da", "0x9da26fc2e1d6ad9fdd46138906b0104ae68a65d8", "0xca9f427df31a1f5862968fad1fe98c0a9ee068c4", "0x3ae88fe370c39384fc16da2c9e768cf5d2495b48", "0x81063419f13cab5ac090cd8329d8fff9feead4a0", "0xbf65120529316beed5858ed9b8add67a976f371e"]
-```
+   ```
+   > miner.start(1)
+   INFO [04-13|11:05:54] Updated mining threads                   threads=1
+   INFO [04-13|11:05:54] Transaction pool price threshold updated price=18000000000
+   INFO [04-13|11:05:54] Etherbase automatically configured       address=0x798e5632B04b344df4Ae6A7d26a8138aa1Ab16cF
+   null
+   > INFO [04-13|11:05:54] Starting mining operation 
+   INFO [04-13|11:05:54] Commit new mining work                   number=1 txs=0 uncles=0 elapsed=474.118µs
+   INFO [04-13|11:05:58] Generating DAG in progress               epoch=0 percentage=0 elapsed=2.047s
+   INFO [04-13|11:06:00] Generating DAG in progress               epoch=0 percentage=1 elapsed=4.036s
+   INFO [04-13|11:06:02] Generating DAG in progress               epoch=0 percentage=2 elapsed=6.051s
+   ......
+   INFO [04-13|11:09:23] Generating DAG in progress               epoch=0 percentage=99 elapsed=3m27.293s
+   INFO [04-13|11:09:23] Generated ethash verification cache      epoch=0 elapsed=3m27.295s
+   INFO [04-13|11:09:24] Successfully sealed new block            number=1 hash=4c4e5e…cc7307
+   INFO [04-13|11:09:24] 🔨 mined potential block                  number=1 hash=4c4e5e…cc7307
+   INFO [04-13|11:09:24] Commit new mining work                   number=2 txs=0 uncles=0 elapsed=162.856µs
+   INFO [04-13|11:09:24] Successfully sealed new block            number=2 hash=0e7f6c…b9efec
+   INFO [04-13|11:09:24] 🔨 mined potential block                  number=2 hash=0e7f6c…b9efec
+   INFO [04-13|11:09:24] Commit new mining work                   number=3 txs=0 uncles=0 elapsed=171.726µs
+   ......
+   > miner.stop()
+   true
+   ```
 
-以以太币单位显示账户余额（一以太币等于1e18 wei）：
+   在其他节点上能够看到Block的同步信息：
 
-```
-> web3.fromWei(eth.getBalance(eth.accounts[0]), "ether")
-4000000000920
-```
+   ```
+   > INFO [04-13|11:09:24] Block synchronisation started 
+   INFO [04-13|11:09:24] Imported new state entries               count=2 elapsed=57.819µs processed=2 pending=0 retry=0 duplicate=0 unexpected=0
+   WARN [04-13|11:09:26] Discarded bad propagated block           number=1 hash=4c4e5e…cc7307
+   INFO [04-13|11:09:26] Imported new block headers               count=2 elapsed=1.405s   number=2 hash=0e7f6c…b9efec ignored=0
+   INFO [04-13|11:09:26] Imported new chain segment               blocks=2 txs=0 mgas=0.000 elapsed=681.457µs mgasps=0.000 number=2 hash=0e7f6c…b9efec cache=768.00B
+   INFO [04-13|11:09:26] Fast sync complete, auto disabling 
+   INFO [04-13|11:09:30] Imported new chain segment               blocks=1 txs=0 mgas=0.000 elapsed=7.287ms   mgasps=0.000 number=3 hash=0ae39a…2b4fa5 cache=1.13kB
+   INFO [04-13|11:09:32] Imported new chain segment               blocks=1 txs=0 mgas=0.000 elapsed=4.736ms   mgasps=0.000 number=4 hash=4b348c…3115d7 cache=1.49kB
+   INFO [04-13|11:09:44] Imported new chain segment               blocks=1 txs=0 mgas=0.000 elapsed=4.771ms   mgasps=0.000 number=5 hash=4657cc…4848a9 cache=1.84kB
+   INFO [04-13|11:09:45] Imported new chain segment               blocks=1 txs=0 mgas=0.000 elapsed=5.726ms   mgasps=0.000 number=6 hash=bda46b…2f1a29 cache=2.20kB
+   ```
 
-在对账号进行操作（花费、转出账）之前，需要先对账号进行解锁：
+   然后各个节点上查看eth.blockNumber：
 
-```
-> personal.unlockAccount(web3.eth.accounts[0])
-```
+   ```
+   > eth.blockNumber
+   6
+   ```
 
-## 其他
+   在挖矿的节点上查看账号的金额：
 
-私有链的所有数据都会放在仓库根目录下的`data`目录中，删除这个目录可以清除所有数据，重新启动新环境。
-[solidity_compiler_helper](https://github.com/rakeshbs/solidity_compiler_helper)，可以使用这个小工具来部署，更方便。
+   ```shell
+   > web3.fromWei(eth.getBalance(eth.accounts[0]), "ether")
+   30
+   # 挖到了30个以太币，哈哈哈
+   ```
+
+   其他各个节点也创建账号，都启动挖矿，看看🔨 开抢~~~
+
+10. 转账：在任意节点上执行转账操作，然后在任意节点启动挖矿，可以完成转账交易的最终记账。
+
+  ```shell
+  > personal.listAccounts
+  ["0xf4f361b18677a2ca651445e54cadd6001bddecfd"]
+  > var tx = {from: "0xf4f361b18677a2ca651445e54cadd6001bddecfd", to: "0x22311a0ef19096a6f2a63c214cf02a726b5a3e75", value: web3.toWei(88, "ether")}
+  undefined
+  > personal.sendTransaction(tx, "123456")
+  INFO [04-13|11:26:22] Submitted transaction                    fullhash=0x838fec578b7a32f2012808368d3910467b494ccd08cf4d3f006e70912d182a14 recipient=0x22311a0EF19096A6f2a63C214CF02A726B5A3e75
+  "0x838fec578b7a32f2012808368d3910467b494ccd08cf4d3f006e70912d182a14"
+
+  > txpool.content
+  {
+    pending: {
+      0xf4f361B18677A2CA651445e54CaDD6001bdDEcFd: {
+        0: {
+          blockHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+          blockNumber: null,
+          from: "0xf4f361b18677a2ca651445e54cadd6001bddecfd",
+          gas: "0x15f90",
+          gasPrice: "0x430e23400",
+          hash: "0x838fec578b7a32f2012808368d3910467b494ccd08cf4d3f006e70912d182a14",
+          input: "0x",
+          nonce: "0x0",
+          r: "0xe3bae4485860bb271d8bb9de14ff0c8d3a1a5379943ea72052a6f706a2865091",
+          s: "0x6498221b8bb4d6f53de36fbb6eb9b79e16bf898c886cd48debcba931b45cacfe",
+          to: "0x22311a0ef19096a6f2a63c214cf02a726b5a3e75",
+          transactionIndex: "0x0",
+          v: "0x42",
+          value: "0x4c53ecdc18a600000"
+        }
+      }
+    },
+    queued: {}
+  }
+  > txpool.inspect
+  {
+    pending: {
+      0xf4f361B18677A2CA651445e54CaDD6001bdDEcFd: {
+        0: "0x22311a0EF19096A6f2a63C214CF02A726B5A3e75: 88000000000000000000 wei + 90000 gas × 18000000000 wei"
+      }
+    },
+    queued: {}
+  }
+  > txpool.status
+  {
+    pending: 1,
+    queued: 0
+  }
+  > txpool.content
+     {
+       pending: {},
+       queued: {}
+
+     }
+  INFO [04-13|11:29:56] Imported new chain segment               blocks=1 txs=0 mgas=0.000 elapsed=3.870ms   mgasps=0.000 number=75 hash=2ee2fe…7ac89b cache=37.66kB
+  > txpool.status
+     {
+       pending: 0,
+       queued: 0
+     }
+     
+     
+  # 结果，转出账户
+  > web3.fromWei(eth.getBalance(eth.accounts[0]), "ether")
+     50.437122
+  # 之前余额138.4375，转走88，手续费0.00162(88000000000000000000 wei + 90000 gas × 18000000000 wei)，实际上这个地方的手续费只花费了0.000378(原余额-新余额-转走金额)，需要进一步调查
+
+  # 转入账户
+  > web3.fromWei(eth.getBalance(eth.accounts[0]), "ether")
+     161.90625
+  # 之前余额73.90625，新增88
+  ```
+
+
+
+
+## 验证测试（二）： 拷贝初始的bootnode的data目录进行集群构建
+
+1. 验证思路：
+
+   - 三个节点运行正常的状态，停掉其中一个节点，拷贝data目录的内容到新节点。
+   - 删除新节点data目录中的
+     - keystore目录下面的账号数据
+     - 删除geth下面的nodekey和nodes子目录
+   - 启动新节点，新节点正常加入集群，并恢复到备份节点当时的数据状态，原有节点没有影响，新节点生成新的节点ID，工作正常。
+
+2. 验证结果：
+
+   ```shell
+   ​```shell
+      # 1、初始化bootnode
+      geth --datadir data --networkid 20180412 init ../genesis.json
+      # 2、启动各个节点，之前需要把bootnode的data目录拷贝到各个节点
+      geth --datadir ./data --networkid 20180412 --bootnodes=enode://322de50135b1542f17585e73aea7ffe9585e9d988cecdff40732842113e5cdb9ae249ca3b12fe7658101632bfc5e19493acf941d9a52a2a9f16627318f01e76d@10.20.1.13:30301 --port 30303 console
+
+      # 各节点上创建账户，挖矿后查看账户余额
+      personal.newAccount('123456')
+      web3.fromWei(eth.getBalance(eth.accounts[0]), "ether")
+
+      # 转账交易
+      var tx = {from: "0x836eabd0b0f75c20b0e66aa57212241bfdbad467", to: "0xc9d71a928be51835335edf11a56e176b92ff5ade", value: web3.toWei(100, "ether")}
+      personal.sendTransaction(tx, "123456")
+
+      # 挖矿
+      miner.start(1)
+      miner.stop()
+   ```
+
+    注意： 验证前需要把各个节点上的data的目录删除掉，可以保留boot.key。
+
+3. 验证结果：
+
+   - bootnode的ID没有变化；
+   - 各个节点的ID变化了；
+   - 能够互相发现；
+   - 转账交易正常。
+
+
+
+## 验证测试（三）： 拷贝正常节点的data目录，构建新节点
+
+1. 验证思路：
+
+   - 三个节点运行正常的状态，停掉其中一个节点，拷贝data目录的内容到新节点。
+   - 删除新节点data目录中的
+     - keystore目录下面的账号数据
+     - 删除geth下面的nodekey和nodes子目录
+   - 启动新节点，新节点正常加入集群，并恢复到备份节点当时的数据状态，原有节点没有影响，新节点生成新的节点ID，工作正常。
+
+2. 验证结果：
+
+   - 正常。
+
+   - 另外，新节点正常工作挖矿后，备份data目录后删除，然后恢复到之前拷贝的data目录状态，重新再删除keystore、nodekey和nodes等，在启动一个新节点后，会自动同步到最新的block状态，其他工作也正常。
+
+   - 新恢复部署的节点，不删除keystore（保留相同的账号），只删除nodekey和nodes，作为新节点启动，这样两个节点使用相同的账号，同时开始挖矿，没有问题。（It is safe to transfer the entire directory or the individual keys therein between ethereum nodes. Note that in case you are adding keys to your node from a different node, the order of accounts may change.）
+
+   - 在genesis.json指定赋值的账号，随时导入，随时就能看到这些账号的余额，不用预先导入；也不存在初始化多次的问题，这部分应该是在系统框架层面解决的。
+
+   - 设置挖矿收益账号未不在本地的账号，可以正常挖矿并产生收益。
+
+     ​
+
+## 验证测试（四）： bootnode不进行初始化，node节点分别初始化，是否正常？
+
+1. 验证结果：
+
+   - bootnode节点不需要init data目录也能正常工作（以前验证可能是其他问题不正常吧）。
+
+     ​
+
+## 结论：
+
+1. 使用`genesis.json`初始化bootnode是不必要的；
+2. 使用`genesis.json`初始化生成data数据是必要的，可以作为节点运行的基础；
+3. 节点运行之后会生成nodekey和node运行文件；
+4. 拷贝一个节点的data目录，删除其中的nodekey和node运行目录，启动命令即可新启动一个节点；
+5. 在`genesis.json`初始化的账号，有正常的值，可以作为节点的miner.setEtherbase，进行挖矿；
+6. 只有存在Key的节点， 才能对账号进行消费操作（否则会报告unknown account错误）。
+7. 只要把其他节点有这个账号的keystore中的对应的key拷贝到本节点keystore目录下面，即可立即生效，可以消费交易（拷贝过程节点不用停止，但是可能会影响节点各个账号的index顺序）。
 
