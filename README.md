@@ -10,6 +10,8 @@
 
 
 
+[常用命令整理](./CommonCommands.md)
+
 
 
 参考URL：
@@ -33,3 +35,12 @@ $ geth --exec "eth.blockNumber" attach
 $ geth --exec 'loadScript("/tmp/checkbalances.js")' attach http://123.123.123.123:8545
 $ geth --jspath "/tmp" --exec 'loadScript("checkbalances.js")' attach http://123.123.123.123:8545
 ```
+
+
+云上测试环境：
+
+ geth-node01 10.20.1.8
+
+ geth-node02 10.20.1.9、172.17.20.97
+
+ geth-node03 10.20.1.13 、172.17.20.28

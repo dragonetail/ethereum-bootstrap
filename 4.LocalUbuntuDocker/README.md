@@ -147,6 +147,7 @@
    # 查看一下账户中的钱，已经初始化到账啦，擦亮眼睛，这些都是真的~~~
    web3.fromWei(eth.getBalance("0x3ae88fe370c39384fc16da2c9e768cf5d2495b48"), "ether")
    web3.fromWei(eth.getBalance("0xbd2d69e3e68e1ab3944a865b3e566ca5c48740da"), "ether")
+   web3.fromWei(eth.getBalance(eth.accounts[0]), "ether")
    # 转账
    var tx = {from: "0x3ae88fe370c39384fc16da2c9e768cf5d2495b48", to: "0xbd2d69e3e68e1ab3944a865b3e566ca5c48740da", value: web3.toWei(500000000000, "ether")}
    personal.sendTransaction(tx, "123456")
