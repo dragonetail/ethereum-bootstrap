@@ -1,5 +1,11 @@
 # Ethereum Bootstrap
 
+练习整理Ethereum的本地网络集群部署和验证，以及关联配置和概念验证，分为不同的主题章节进行。
+
+
+
+**主要章节：**
+
 [1.SingleNode](./1.SingleNode/)： 单节点以太坊部署
 
 [2.TokenContract](./2.TokenContract/)：智能合约（Token代币）的部署和验证
