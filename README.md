@@ -12,6 +12,8 @@
 
 [常用命令整理](./CommonCommands.md)
 
+[Screen命令使用说明](./Screen.md)
+
 
 
 参考URL：
@@ -21,26 +23,15 @@
 
 
 
-```
-$ geth attach ipc:/some/custom/path
-$ geth attach http://191.168.1.1:8545
-$ geth attach ws://191.168.1.1:8546
-```
+
+目前正在使用的云上测试环境信息：
 
 ```
-$ geth --exec "eth.blockNumber" attach
-```
-
-```
-$ geth --exec 'loadScript("/tmp/checkbalances.js")' attach http://123.123.123.123:8545
-$ geth --jspath "/tmp" --exec 'loadScript("checkbalances.js")' attach http://123.123.123.123:8545
+geth-node01 10.20.1.8
+geth-node02 10.20.1.9、172.17.20.97
+geth-node03 10.20.1.13 、172.17.20.28
 ```
 
 
-云上测试环境：
 
- geth-node01 10.20.1.8
-
- geth-node02 10.20.1.9、172.17.20.97
-
- geth-node03 10.20.1.13 、172.17.20.28
+ 

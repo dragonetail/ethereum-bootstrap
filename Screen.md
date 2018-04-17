@@ -10,6 +10,30 @@ Screen实现了基本的文本操作，如复制粘贴等；还提供了类似�
 
 
 
+## screen常用操作命令
+
+```
+screen -S geth  #启动一个geth验证的screen回话
+ctrl-a d #临时退出这个回话
+screen -r geth  #恢复geth验证的screen回话
+C-a z    #临时把当前回话放到后台，使用fg命令可以快速回来
+
+C-a c    #创建一个新shell窗口
+C-a n / p / 0..9 / [SPACE] / C-a / w  #切换窗口
+C-a A    #为当前窗口命名
+C-a k    #关闭当前窗口，杀死窗口的进程
+
+C-a S  #将显示器水平分割
+C-a |  #将显示器垂直分屏
+C-a <tab>  #在各个区之间切换
+C-a X      #关闭当前焦点所在的屏幕区块(窗口不会关闭)
+C-a Q      #关闭除当前区块之外其他的所有区块(窗口不会关闭)
+```
+
+连接到其他本地geth启动的ipc地址
+
+
+
 ## screen命令
 
 1. **安装** apt-get install screen

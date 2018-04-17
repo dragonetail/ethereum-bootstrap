@@ -174,17 +174,136 @@
 
 2. attach用法
 
-3. ​
+   ```
+   geth --ipcpath ~/.ethereum/geth.ipc attach  #指定本地ipc文件方式
+   geth attach ethereum/data1/geth.ipc   #指定连接ipc
+   geth --exec 'eth.coinbase' attach http://172.16.0.10:8545  #指定HTTP的ipc接口，并执行命令
+   ```
 
-4. ​
+   ​
 
-5. ​
+3. 使用密码文件自动解锁账号
 
-6. a
+   ```
+   --unlock '0,1,2' --password ~/.ethereum/password  #password文件中明码顺序书写密码
+   ```
 
-7. b
+   ​
 
-8. ​
+4. 启动rpc接口
+   在geth命令行追加参数启动rpc服务：
+
+   ```
+   --rpc --rpcaddr="0.0.0.0" --rpcport 8001 --rpccorsdomain="*" --rpcapi="db,eth,net,web3,personal"
+   ```
+
+   ​
+
+5. 加载并运行JS文件
+
+   ```
+   geth --jspath "/tmp" --exec 'loadScript("checkbalances.js")' attach http://123.123.123.123:8545	
+   ```
+
+   ​
+
+6. 挖矿
+
+   ```
+   geth --mine --minerthreads=2 --etherbase=0x83fda0ba7e6cfa8d7319d78fa0e6b753a2bcb5a6
+   ```
+
+   ​
+
+7. 日志和后台运行
+
+   geth没有设置成后台daemon（https://github.com/ethereum/go-ethereum/issues/2607），因此不能通过nohup之类启动到后台，如果需要后台，需要使用screen或者docker方式进行处理。
+
+   ​
+
+8. JS控制台常用命令
+
+   ```javascript
+   personal.newAccount("123456") #创建账号
+   personal.listAccounts #列出账号
+   personal.listAccounts[1]
+   eth.accounts
+   eth.accounts[0]
+
+   personal.unlockAccount(eth.accounts[0],"password", 1000*60*20) #解锁账号20分钟
+
+   eth.coinbase 旷工账号
+
+   eth.getBalance(eth.accounts[0]) #查看账号余额
+   web3.fromWei(eth.getBalance(eth.accounts[0]), "ether") #以以太币格式查找余额
+
+   #可以JS方式定义变量和函数
+   function checkAllBalances() {
+     web3.eth.getAccounts(function(err, accounts) {
+      accounts.forEach(function(id) {
+       web3.eth.getBalance(id, function(err, balance) {
+        console.log("" + id + ":\tbalance: " + web3.fromWei(balance, "ether") + " ether");
+      });
+     });
+    });
+   };	
+
+   #运行函数
+   checkAllBalances()
+
+   #转账
+   personal.unlockAccount("0x83fda0ba7e6cfa8d7319d78fa0e6b753a2bcb5a6", "", 300)	
+   eth.sendTransaction({from: '0x83fda0ba7e6cfa8d7319d78fa0e6b753a2bcb5a6', to: '0xe8abf98484325fd6afc59b804ac15804b978e607', value: web3.toWei(1, "ether")})
+
+   #状态
+   eth.pendingTransactions  #查看挂起的交易
+   eth.blockNumber #查看最后的区块ID
+   eth.getBlock(1)  #查看区块信息
+
+   #查看智能合约编译器
+   eth.compile
+
+   #以太币单位，默认是最小的单位Wei
+   kwei (1000 Wei)
+   mwei (1000 KWei)
+   gwei (1000 mwei)
+   szabo (1000 gwei)
+   finney (1000 szabo)
+   ether (1000 finney)
+
+   web3.fromWei(10000000000000000,"ether") #单位转换
+
+   #查看网络ID
+   admin.nodeInfo.protocols.eth.network
+   #手工加入节点
+   admin.addPeer()
+   net.listening
+   admin.nodeInfo
+   admin.nodeInfo.enode
+   admin.addPeer('enode://322de50135b1542f17585e73aea7ffe9585e9d988cecdff40732842113e5cdb9ae249ca3b12fe7658101632bfc5e19493acf941d9a52a2a9f16627318f01e76d@10.20.1.13:30303')
+   net.peerCount
+   admin.peers
+   admin.peers.forEach(function(p) {console.log(p.network.remoteAddress);})
+
+   #挖矿
+   miner.setEtherbase("0x83fda0ba7e6cfa8d7319d78fa0e6b753a2bcb5a6")  #设置默认矿工账号地址
+   eth.accounts
+   eth.coinbase
+   miner.start(1)  #一个进程开始挖矿
+   miner.stop()
+
+   #txpool管理
+   txpool.status
+
+   amount = web3.toWei(5,'ether')
+   eth.sendTransaction({from:eth.accounts[0],to:eth.accounts[1],value:amount})	
+   txpool.status 
+   miner.start(1);admin.sleepBlocks(1);miner.stop();
+   txpool.status
+   web3.fromWei(eth.getBalance(eth.accounts[1]),'ether')  
+   ```
+
+   ​
 
 
 
@@ -212,3 +331,26 @@ IPC endpoint opened: /Users/${User}/Library/Ethereum/geth.ipc
 "/Applications/Ethereum Wallet.app/Contents/MacOS/Ethereum Wallet" --rpc http://localhost:8545							
 ```
 TODO： 需要分析Mist的程序开发框架、代码结构和定制开发方法。
+
+
+
+## 一个SSH终端下面使用screen命令进行快速验证的常用操作命令
+
+```
+screen -S geth  #启动一个geth验证的screen回话
+ctrl-a d #临时退出这个回话
+screen -r geth  #恢复geth验证的screen回话
+C-a z    #临时把当前回话放到后台，使用fg命令可以快速回来
+
+C-a c    #创建一个新shell窗口
+C-a n / p / 0..9 / [SPACE] / C-a / w  #切换窗口
+C-a A    #为当前窗口命名
+C-a k    #关闭当前窗口，杀死窗口的进程
+
+C-a S  #将显示器水平分割
+C-a |  #将显示器垂直分屏
+C-a <tab>  #在各个区之间切换
+C-a X      #关闭当前焦点所在的屏幕区块(窗口不会关闭)
+C-a Q      #关闭除当前区块之外其他的所有区块(窗口不会关闭)
+```
+
