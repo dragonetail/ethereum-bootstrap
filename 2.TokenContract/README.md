@@ -16,6 +16,8 @@
 
 2. 将本仓库通过`git clone`命令下载到本地。
 
+   ​
+
 ## 使用以太坊控制台编译和部署智能合约
 
 进入本仓库目录: `cd ethereum-bootstrap/2.TokenContract`
@@ -128,3 +130,8 @@ INFO [04-12|17:15:28] Submitted transaction                    fullhash=0xcb81ef
 
 
 
+## 使用Remix智能合约开发IDE进行快速开发、部署和调试
+
+访问http://remix.ethereum.org/#optimize=false&version=soljson-v0.4.23+commit.124ca40d.js直接开始编辑sol文件，并在Run->Environment中配置Web3 Provider，接入本地测试网络（http://172.17.20.28:8546），使用create功能可以部署合约到以太坊网络，部署成功后即可进行测试。
+
+本地化部署，可以参考<https://www.npmjs.com/package/remix-ide>。
